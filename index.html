@@ -20,7 +20,7 @@ body.paused{background:#f6f3ee}
 .screen{display:none;position:absolute;inset:0;padding:max(14px,env(safe-area-inset-top)) 22px max(18px,env(safe-area-inset-bottom));flex-direction:column}
 .screen.on{display:flex}
 button{font:inherit;cursor:pointer;border:0}
-.top{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;min-height:44px}.top h1{text-align:center}.top .icon-btn{justify-self:end}
 .icon-btn{background:none;padding:8px;color:var(--blue);display:flex}
 .back{background:none;padding:8px;margin-left:-8px;color:var(--blue);display:flex;align-self:flex-start}
 h1{font-size:22px;margin:0;font-weight:600;color:var(--navy)}
@@ -52,7 +52,7 @@ body.paused .pill{visibility:visible}
 .tg::after{content:"";position:absolute;top:3px;left:3px;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:.2s}
 .tg.on{background:var(--blue)}.tg.on::after{left:29px}
 .link{display:block;width:100%;text-align:left;background:var(--gb);padding:16px 18px;border-radius:18px;margin-bottom:14px;font-size:16px;color:var(--navy);font-weight:600}
-.smalllink{background:none;color:#777;font-size:13px;text-decoration:underline;padding:4px 0;margin-bottom:14px}
+.smalllink{display:block;width:100%;text-align:left;background:var(--gb);color:var(--blue);font-size:14px;font-weight:600;padding:13px 18px;border-radius:18px;margin-bottom:14px}
 .ofuse{display:block;text-align:center;text-decoration:none;background:#fff;color:var(--blue);border-radius:12px;padding:12px;font-size:14px;margin-top:10px;border:1px solid #b9d3ee}
 .scroll{overflow-y:auto;flex:1;padding-bottom:12px}
 ol{margin:6px 0 0;padding-left:0;list-style:none;counter-reset:n}
@@ -92,7 +92,7 @@ ol li i{display:block;font-style:normal;font-size:12px;color:#888}
     <hr>
     <div><div class="lbl">経過時間</div><div class="big" id="t">00:00</div></div>
   </div>
-  <div class="card" style="margin-bottom:14px;text-align:left"><div class="next" id="nx1"></div><div class="next" id="nx2"></div></div>
+  <div class="card" style="margin-bottom:14px;text-align:center"><div class="next" id="nx1"></div><div class="next" id="nx2"></div></div>
   <div class="row"><button class="btn primary" id="pp">一時停止</button><button class="btn ghost" id="redo">最初から</button></div>
 </div>
 
@@ -146,7 +146,7 @@ ol li i{display:block;font-style:normal;font-size:12px;color:#888}
 <div id="err">アプリを読み込めませんでした。<br>インターネット接続を確認して、もう一度読み込んでください。</div>
 
 <script>
-const VERSION='1.0.0',UPDATED='2026年10月26日',TOTAL=180;
+const VERSION='1.0.1',UPDATED='2026年10月26日',TOTAL=180;
 const STEPS=[[0,'蒸らし',30],[30,'2回目',120],[60,'3回目',150],[80,'4回目',190],[100,'5回目',225]];
 const $=s=>document.querySelector(s);
 const rd=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
