@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brew Timer</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brew Timer">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--blue:#1f6fc5;--navy:#0f4c8a;--gb:#f1ede6;--gbd:#e9e4dc;--text:#3a3a3a;--red:#d9363e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#fff;color:var(--text);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+body.paused{background:#f6f3ee}
+.screen{display:none;position:absolute;inset:0;padding:max(14px,env(safe-area-inset-top)) 22px max(18px,env(safe-area-inset-bottom));flex-direction:column}
+.screen.on{display:flex}
+button{font:inherit;cursor:pointer;border:0}
+.top{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.icon-btn{background:none;padding:8px;color:var(--blue);display:flex}
+.back{background:none;padding:8px;margin-left:-8px;color:var(--blue);display:flex;align-self:flex-start}
+h1{font-size:22px;margin:0;font-weight:600;color:var(--navy)}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:28px}
+.btn{width:100%;padding:18px;border-radius:16px;font-size:18px;font-weight:600}
+.primary{background:var(--blue);color:#fff}
+.ghost{background:#fff;color:var(--red);border:1.5px solid #e8a3a6}
+.sec{background:#fff;color:var(--blue);border:1.5px solid #b9d3ee}
+#start{width:220px;padding:22px;font-size:22px;letter-spacing:.08em}
+#cd{font-size:160px;font-weight:700;color:var(--navy)}
+.card{background:var(--gb);border-radius:16px;padding:12px 16px;text-align:center}
+.card small{display:block;font-size:13px;color:#777}
+.card b{font-size:20px;color:var(--navy);display:block;margin-top:2px;min-height:28px}
+.lbl{font-size:16px;color:#666;text-align:center}
+.big{font-size:min(30vw,128px);font-weight:700;color:var(--navy);text-align:center;line-height:1.05;font-variant-numeric:tabular-nums}
+.mid{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:8px 0}
+hr{border:0;border-top:1px solid #e5e5e5;width:100%;margin:0}
+.next{font-size:14px;color:#666}
+.row{display:flex;gap:12px}.row .btn{padding:16px}
+.row .ghost{flex:.8;font-weight:500}.row .primary{flex:1.2}
+.pill{font-size:14px;color:var(--navy);background:var(--gbd);border-radius:20px;padding:2px 12px;align-self:center;visibility:hidden}
+body.paused .pill{visibility:visible}
+.box{background:var(--gb);border-radius:18px;padding:16px 18px;margin-bottom:14px}
+.box h2{font-size:17px;margin:0 0 8px;color:var(--navy)}
+.box p{margin:6px 0;font-size:14px;line-height:1.7}
+.main-card{background:#eef5fd;border:1.5px solid #b9d3ee}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:17px;font-weight:600}
+.tg{position:relative;width:64px;height:38px;border-radius:19px;background:#c9c9cc;flex:none;transition:.2s}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:.2s}
+.tg.on{background:var(--blue)}.tg.on::after{left:29px}
+.link{display:block;width:100%;text-align:left;background:var(--gb);padding:16px 18px;border-radius:18px;margin-bottom:14px;font-size:16px;color:var(--navy);font-weight:600}
+.smalllink{background:none;color:#777;font-size:13px;text-decoration:underline;padding:4px 0;margin-bottom:14px}
+.ofuse{display:block;text-align:center;text-decoration:none;background:#fff;color:var(--blue);border-radius:12px;padding:12px;font-size:14px;margin-top:10px;border:1px solid #b9d3ee}
+.scroll{overflow-y:auto;flex:1;padding-bottom:12px}
+ol{margin:6px 0 0;padding-left:0;list-style:none;counter-reset:n}
+ol li{counter-increment:n;position:relative;padding:8px 0 8px 40px;font-size:15px;line-height:1.5}
+ol li::before{content:counter(n);position:absolute;left:0;top:8px;width:28px;height:28px;border-radius:50%;background:#5a79ab;color:#fff;text-align:center;line-height:28px;font-size:14px;font-weight:700}
+ol li i{display:block;font-style:normal;font-size:12px;color:#888}
+.pilltag{display:inline-block;background:#d9e6f6;color:var(--navy);font-weight:700;border-radius:20px;padding:6px 16px;font-size:16px}
+#upd{display:none;position:absolute;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom));background:var(--gb);border-radius:14px;padding:10px 12px 10px 16px;font-size:13px;align-items:center;gap:8px}
+#upd span{flex:1}#upd .u{background:none;color:var(--blue);font-weight:700;font-size:14px;padding:6px}#upd .x{background:none;color:#888;font-size:18px;padding:4px 8px}
+#modal{display:none;position:fixed;inset:0;background:#0006;z-index:50;align-items:center;justify-content:center;padding:28px}
+#modal.on{display:flex}
+#modal div{background:#fff;border-radius:18px;padding:24px;width:100%;max-width:340px;text-align:center}
+#modal p{margin:0 0 20px;font-size:17px;line-height:1.6}
+#land{display:none;position:fixed;inset:0;z-index:99;background:var(--gbd);color:#444;align-items:center;justify-content:center;font-size:22px;text-align:center;padding:20px}
+@media (orientation:landscape) and (max-height:520px){#land{display:flex}}
+#err{display:none;position:fixed;inset:0;z-index:98;background:#fff;align-items:center;justify-content:center;padding:32px;text-align:center;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div id="home" class="screen on">
+  <div class="top"><span></span><h1>Brew Timer</h1>
+    <button class="icon-btn" id="gear" aria-label="設定"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+  <div class="center"><p style="font-size:18px;line-height:1.8;margin:0">粉15g、お湯225g（90℃）を<br>準備してください。</p>
+    <button class="btn primary" id="start">START</button></div>
+  <div id="upd"><span>新しいバージョンがあります</span><button class="u" id="updgo">更新する</button><button class="x" id="updx" aria-label="閉じる">×</button></div>
+</div>
+
+<div id="count" class="screen"><div class="center"><div id="cd">3</div></div></div>
+
+<div id="brew" class="screen">
+  <div class="top"><span></span><h1>Brew Timer</h1><span style="width:42px"></span></div>
+  <span class="pill">一時停止中</span>
+  <div class="card" style="margin-top:8px"><small>現在の工程</small><b id="cur">蒸らし</b></div>
+  <div class="mid">
+    <div><div class="lbl">目標累計湯量</div><div class="big" id="g">30g</div></div>
+    <hr>
+    <div><div class="lbl">経過時間</div><div class="big" id="t">00:00</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px;text-align:left"><div class="next" id="nx1"></div><div class="next" id="nx2"></div></div>
+  <div class="row"><button class="btn primary" id="pp">一時停止</button><button class="btn ghost" id="redo">最初から</button></div>
+</div>
+
+<div id="done" class="screen"><div class="center"><h1 style="font-size:26px;line-height:1.5">おいしいコーヒーの<br>できあがり！</h1>
+  <div style="width:100%;display:flex;flex-direction:column;gap:12px"><button class="btn primary" id="again">最初から</button><button class="btn sec" id="fin">終了</button></div></div></div>
+
+<div id="settings" class="screen">
+  <button class="back" data-to="home" aria-label="戻る"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1 style="margin:2px 0 14px">設定</h1>
+  <div class="scroll">
+    <div class="box main-card"><div class="sw"><span>工程切り替え時に音を鳴らす</span><button class="tg" id="tg" role="switch" aria-label="工程切り替え時に音を鳴らす"></button></div>
+      <p style="color:#555">ONにすると、工程が切り替わったときにベル音が1回鳴ります。ONにした瞬間にテスト音を再生します。</p></div>
+    <button class="link" data-to="install">ホーム画面への追加方法 ›</button>
+    <div class="box"><h2>アプリ情報</h2><p>アプリ名：Brew Timer</p><p>バージョン：<span id="ver"></span></p><p>最終更新日：<span id="upd8"></span></p><p>開発者：Wel (Be)</p></div>
+    <button class="smalllink" data-to="privacy">プライバシーについて</button>
+    <div class="box"><h2>Brew Timerを応援する</h2><p>アプリの改善依頼や開発へのご支援はこちらからお願いいたします。</p>
+      <a class="ofuse" href="https://ofuse.me/f3a8ad6a" target="_blank" rel="noopener noreferrer">OFUSEを開く</a></div>
+  </div>
+</div>
+
+<div id="install" class="screen">
+  <button class="back" data-to="settings" aria-label="戻る"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1 style="text-align:center;margin:0 0 6px">アプリのインストール方法</h1>
+  <div class="scroll">
+    <div class="box"><span class="pilltag">iPhone（Safari）</span><ol>
+      <li>画面下の「共有」ボタンをタップします。<i>画面下の中央にある四角いボタンです</i></li>
+      <li>「ホーム画面に追加」をタップします。<i>メニューの中にあります</i></li>
+      <li>アプリの名前を確認して「追加」をタップします。<i>必要に応じて名前を変更できます</i></li>
+      <li>ホーム画面にアプリのアイコンが追加されます。<i>これでインストールは完了です</i></li></ol></div>
+    <div class="box"><span class="pilltag">Android（Chrome）</span><ol>
+      <li>画面右上の「メニュー」ボタンをタップします。<i>3つの点が縦に並んだボタンです</i></li>
+      <li>「ホーム画面に追加」をタップします。<i>メニューの中にあります</i></li>
+      <li>アプリの名前を確認して「追加」をタップします。<i>必要に応じて名前を変更できます</i></li>
+      <li>ホーム画面にアプリのアイコンが追加されます。<i>これでインストールは完了です</i></li></ol></div>
+  </div>
+</div>
+
+<div id="privacy" class="screen">
+  <button class="back" data-to="settings" aria-label="戻る"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1 style="margin:2px 0 14px">プライバシーについて</h1>
+  <div class="scroll" style="font-size:15px;line-height:1.9">
+    <p>Brew Timerは、個人情報を集めません。抽出の開始時刻やタイマーの状態、通知音の設定などは、お使いの端末の中だけに保存され、外部のサーバーには送られません。</p>
+    <p>アプリが開かれた回数を知るため、アクセス解析サービス「GoatCounter」を使っています。計測するのはアクセス数のみで、画面ごとの利用状況、ボタン操作、タイマーや抽出の情報は送信しません。</p>
+    <p>計測はインターネットに接続しているときだけ行います。オフラインのときは計測せず、送れなかった情報をためることもありません。</p>
+  </div>
+</div>
+
+<div id="modal"><div><p>抽出を中止して最初からやり直しますか？</p>
+  <div class="row"><button class="btn sec" id="no">いいえ</button><button class="btn primary" id="yes">はい</button></div></div></div>
+<div id="land">端末を縦向きに戻してください</div>
+<div id="err">アプリを読み込めませんでした。<br>インターネット接続を確認して、もう一度読み込んでください。</div>
+
+<script>
+const VERSION='1.0.0',UPDATED='2026年10月26日',TOTAL=180;
+const STEPS=[[0,'蒸らし',30],[30,'2回目',120],[60,'3回目',150],[80,'4回目',190],[100,'5回目',225]];
+const $=s=>document.querySelector(s);
+const rd=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const fm=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const fm2=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+let st=rd('bt_state',{mode:'idle'}),cfg=rd('bt_cfg',{sound:false});
+let monoRef=0,lastIdx=-1,silent=false,msg='',msgUntil=0,timer=null,cdTimers=[],ctx=null,lock=null,cdActive=false;
+
+function go(n){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id===n));document.body.classList.toggle('paused',n==='brew'&&st.mode==='pause');if(n==='home')showUpd()}
+document.querySelectorAll('[data-to]').forEach(b=>b.onclick=()=>go(b.dataset.to));
+$('#gear').onclick=()=>go('settings');
+$('#ver').textContent=VERSION;$('#upd8').textContent=UPDATED;
+
+/* sound */
+function audio(){try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume()}catch(e){}}
+function bell(){try{audio();const t=ctx.currentTime,o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain();
+o.type='sine';o.frequency.value=988;o2.type='sine';o2.frequency.value=1976;
+g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+.5);
+const g2=ctx.createGain();g2.gain.value=.25;o.connect(g);o2.connect(g2);g2.connect(g);g.connect(ctx.destination);
+o.start(t);o2.start(t);o.stop(t+.52);o2.stop(t+.52)}catch(e){}}
+function paintTg(){const t=$('#tg');t.classList.toggle('on',cfg.sound);t.setAttribute('aria-checked',cfg.sound)}
+$('#tg').onclick=()=>{cfg.sound=!cfg.sound;wr('bt_cfg',cfg);paintTg();if(cfg.sound)bell()};paintTg();
+
+/* wake lock */
+async function wl(on){try{if(on){if(!lock&&navigator.wakeLock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>lock=null)}}else if(lock){await lock.release();lock=null}}catch(e){lock=null}}
+
+/* time */
+function elapsed(){return st.mode==='run'?st.base+(performance.now()-monoRef):st.mode==='pause'?st.base:0}
+function save(){wr('bt_state',st)}
+function resync(){if(st.mode==='run'){st.base=st.base+(Date.now()-st.wallRef);st.wallRef=Date.now();monoRef=performance.now();save();silent=true}}
+
+function idxOf(e){let i=0;STEPS.forEach((s,k)=>{if(e>=s[0])i=k});return i}
+function tick(){
+  if(st.mode==='idle')return;
+  const e=Math.floor(elapsed()/1000);
+  if(e>=TOTAL){finish();return}
+  const i=idxOf(e);
+  if(i!==lastIdx){
+    if(lastIdx>=0&&!silent&&i===lastIdx+1&&i>=1){msg='次は'+STEPS[i][1]+'の注湯です';msgUntil=performance.now()+3000;if(cfg.sound&&document.visibilityState==='visible')bell()}
+    lastIdx=i;silent=false;
+  }
+  const c=performance.now()<msgUntil?msg:(i===4?'抽出中':STEPS[i][1]);
+  $('#cur').textContent=c;$('#g').textContent=STEPS[i][2]+'g';$('#t').textContent=fm2(e);
+  if(i<4){$('#nx1').textContent='次の工程（'+STEPS[i+1][1]+'）';$('#nx2').textContent=fm(STEPS[i+1][0])+' 開始予定'}
+  else{$('#nx1').textContent='抽出完了';$('#nx2').textContent=fm(TOTAL)+' 予定'}
+}
+function runLoop(){clearInterval(timer);timer=setInterval(tick,200);tick()}
+function stopLoop(){clearInterval(timer);timer=null}
+function paintPP(){const p=st.mode==='pause';$('#pp').textContent=p?'再開':'一時停止';document.body.classList.toggle('paused',p)}
+
+/* flow */
+function reset(){st={mode:'idle'};save();stopLoop();wl(false);lastIdx=-1;msg='';msgUntil=0;go('home')}
+function finish(){stopLoop();wl(false);st={mode:'idle'};save();go('done')}
+function enterBrew(){lastIdx=-1;silent=true;go('brew');paintPP();wl(true);runLoop()}
+$('#start').onclick=()=>{audio();cdActive=true;go('count');let n=3;$('#cd').textContent=n;
+  const step=()=>{n--;if(n>0){$('#cd').textContent=n;cdTimers.push(setTimeout(step,1000))}else{cdActive=false;
+    st={mode:'run',base:0,wallRef:Date.now()};monoRef=performance.now();save();enterBrew()}};
+  cdTimers.push(setTimeout(step,1000))};
+function cancelCd(){cdTimers.forEach(clearTimeout);cdTimers=[];cdActive=false;go('home')}
+$('#pp').onclick=()=>{if(st.mode==='run'){st.base=elapsed();st.mode='pause';save()}else if(st.mode==='pause'){st.mode='run';st.wallRef=Date.now();monoRef=performance.now();save()}paintPP();tick()};
+$('#redo').onclick=()=>$('#modal').classList.add('on');
+$('#no').onclick=()=>$('#modal').classList.remove('on');
+$('#yes').onclick=()=>{$('#modal').classList.remove('on');reset()};
+$('#again').onclick=reset;$('#fin').onclick=reset;
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){if(cdActive)cancelCd();return}
+  if(st.mode==='run'){resync();tick()}
+  if(st.mode!=='idle')wl(true);
+});
+
+/* restore */
+(function(){
+  if(st.mode==='run'){const e=st.base+(Date.now()-st.wallRef);st.base=e;st.wallRef=Date.now();monoRef=performance.now();
+    if(e>=TOTAL*1000){st={mode:'idle'};save();go('done');return}enterBrew()}
+  else if(st.mode==='pause'){if(st.base>=TOTAL*1000){st={mode:'idle'};save();go('done')}else enterBrew()}
+})();
+
+/* GoatCounter (online only) */
+if(navigator.onLine){const s=document.createElement('script');s.async=true;s.dataset.goatcounter='https://wel-be.goatcounter.com/count';s.src='//gc.zgo.at/count.js';document.head.appendChild(s)}
+
+/* orientation hint */
+try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('portrait').catch(()=>{})}catch(e){}
+
+/* PWA / update */
+let reg=null,updReady=false,updDismissed=false,updating=false;
+function showUpd(){$('#upd').style.display=(updReady&&!updDismissed&&$('#home').classList.contains('on'))?'flex':'none'}
+function markReady(){updReady=true;showUpd()}
+$('#updx').onclick=()=>{updDismissed=true;showUpd()};
+$('#updgo').onclick=()=>{
+  updating=true;const w=reg&&reg.waiting;
+  if(w)w.postMessage('SKIP_WAITING');
+  setTimeout(()=>{if(updating){updating=false;const s=$('#upd span');s.textContent='更新に失敗しました。現在のバージョンを引き続きご利用いただけます。';$('#updgo').style.display='none'}},6000)};
+if('serviceWorker' in navigator){
+  const hadCtl=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(updating)location.reload()});
+  navigator.serviceWorker.register('sw.js').then(r=>{
+    reg=r;if(r.waiting&&navigator.serviceWorker.controller)markReady();
+    r.addEventListener('updatefound',()=>{const w=r.installing;if(!w)return;
+      w.addEventListener('statechange',()=>{
+        if(w.state==='installed'&&navigator.serviceWorker.controller)markReady();
+        if(w.state==='redundant'&&!navigator.serviceWorker.controller&&!hadCtl)$('#err').style.display='flex'})});
+    r.update().catch(()=>{});
+  }).catch(()=>{if(!navigator.serviceWorker.controller)$('#err').style.display='flex'});
+}
+</script>
+</body>
+</html>
